@@ -1,17 +1,4 @@
--- ==============================================================================
--- GANESH COMPUTERS & ACCESSORIES - COMPLETE ONE-CLICK SUPABASE SETUP
--- ==============================================================================
--- Paste this ENTIRE file into Supabase Dashboard -> SQL Editor and click "RUN".
--- It creates:
--- 1. Database table 'products' with search indexes and triggers
--- 2. Row-Level Security (RLS) policies (public read, admin write)
--- 3. Storage bucket 'product-images' with public read & admin upload policies
--- 4. Initial hardware catalog seed data
--- ==============================================================================
 
--- ------------------------------------------------------------------------------
--- PART 1: EXTENSIONS & TABLE DEFINITION
--- ------------------------------------------------------------------------------
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 CREATE EXTENSION IF NOT EXISTS "pgcrypto";
 
