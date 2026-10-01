@@ -1,0 +1,149 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'Satoshi', 'General Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-display: 'Clash Display', 'Cabinet Grotesk', -apple-system, sans-serif;
+  --font-heading: 'Cabinet Grotesk', 'Clash Display', -apple-system, sans-serif;
+
+  /* Three Core Color Pillars */
+  --color-brand-primary: #E11D48;
+  --color-brand-primary-hover: #BE123C;
+  --color-brand-primary-light: #FFF1F2;
+  --color-brand-accent: #F43F5E;
+  --color-brand-accent-glow: rgba(225, 29, 72, 0.25);
+
+  --color-brand-bg: #F8FAFC;
+  --color-brand-surface: #FFFFFF;
+  --color-brand-surface-muted: #F1F5F9;
+  --color-brand-text: #090D16;
+  --color-brand-muted: #64748B;
+  --color-brand-subtle: #94A3B8;
+
+  --color-brand-dark: #070A12;
+  --color-brand-dark-surface: #0E1424;
+  --color-brand-dark-card: #131B30;
+  --color-brand-dark-border: rgba(255, 255, 255, 0.08);
+
+  --color-whatsapp: #25D366;
+  --color-whatsapp-hover: #1EBE5D;
+}
+
+/* Custom Base Styles */
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background-color: var(--color-brand-bg);
+    color: var(--color-brand-text);
+    font-family: var(--font-sans);
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.035em;
+    font-weight: 700;
+  }
+}
+
+/* Custom Utilities for High-End Linear/Stripe/Vercel Aesthetic */
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display);
+  }
+  .font-heading {
+    font-family: var(--font-heading);
+  }
+  .font-sans {
+    font-family: var(--font-sans);
+  }
+
+  /* Engineered Grid Pattern */
+  .bg-grid-subtle {
+    background-size: 32px 32px;
+    background-image: 
+      linear-gradient(to right, rgba(15, 23, 42, 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(15, 23, 42, 0.04) 1px, transparent 1px);
+  }
+
+  .bg-grid-dark {
+    background-size: 40px 40px;
+    background-image: 
+      linear-gradient(to right, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  }
+
+  /* Radial Dot Matrix */
+  .bg-dot-pattern {
+    background-image: radial-gradient(rgba(15, 23, 42, 0.08) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+
+  /* High-End Surface Styling */
+  .surface-card {
+    background: #FFFFFF;
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 8px 24px -4px rgba(15, 23, 42, 0.05);
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+
+  .surface-card:hover {
+    border-color: rgba(225, 29, 72, 0.25);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 20px 35px -8px rgba(225, 29, 72, 0.1);
+  }
+
+  .surface-dark-card {
+    background: #0E1424;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Linear-style Ambient Glow */
+  .glow-crimson {
+    box-shadow: 0 0 50px -10px rgba(225, 29, 72, 0.35);
+  }
+
+  .glow-crimson-subtle {
+    box-shadow: 0 12px 30px -8px rgba(225, 29, 72, 0.22);
+  }
+
+  .glow-emerald {
+    box-shadow: 0 0 35px -5px rgba(37, 211, 102, 0.4);
+  }
+
+  /* Shimmer highlight for tags & badges */
+  .badge-shimmer {
+    background: linear-gradient(110deg, rgba(255, 255, 255, 0) 30%, rgba(255, 255, 255, 0.3) 50%, rgba(255, 255, 255, 0) 70%);
+    background-size: 200% 100%;
+    animation: shimmer 3s infinite;
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Minimalist Hardware Scrollbars */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
