@@ -8,7 +8,7 @@ import { StockBadge } from '../../components/common/Badge';
 import { Button } from '../../components/common/Button';
 import { Spinner } from '../../components/common/Spinner';
 import { Modal } from '../../components/common/Modal';
-import { CATEGORIES_LIST } from '../../lib/mockData';
+import { CATEGORIES_LIST } from '../../constants/categories';
 import { 
   PlusCircle, 
   Search, 
@@ -157,7 +157,7 @@ export const AdminProductsListPage: React.FC = () => {
             onChange={handleCategoryChange}
             className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-3.5 py-2.5 text-xs sm:text-sm font-heading font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#E11D48] cursor-pointer"
           >
-            {CATEGORIES_LIST.map((c) => (
+            {CATEGORIES_LIST.map((c: string) => (
               <option key={c} value={c}>
                 {c}
               </option>

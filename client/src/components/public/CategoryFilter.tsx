@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { CATEGORIES_LIST } from '../../lib/mockData';
+import { CATEGORIES_LIST } from '../../constants/categories';
 import { 
   Laptop, 
   RotateCcw, 

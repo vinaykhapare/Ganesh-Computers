@@ -1,34 +1,19 @@
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import { Product, ProductFilterParams, PaginatedProductsResponse, DashboardStats } from '../types';
-import { INITIAL_MOCK_PRODUCTS } from '../lib/mockData';
 
-const LOCAL_STORAGE_KEY = 'ganesh_catalog_products';
-
-// Helper to get local mock data store
-function getLocalProducts(): Product[] {
-  try {
-    const raw = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (!raw) {
-      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(INITIAL_MOCK_PRODUCTS));
-      return INITIAL_MOCK_PRODUCTS;
-    }
-    return JSON.parse(raw);
-  } catch {
-    return INITIAL_MOCK_PRODUCTS;
+// Purge any stale mock products stored in client's localStorage
+try {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    window.localStorage.removeItem('ganesh_catalog_products');
   }
-}
-
-function saveLocalProducts(products: Product[]): void {
-  try {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(products));
-  } catch (e) {
-    console.error('Failed to save to localStorage:', e);
-  }
+} catch {
+  // Ignore localStorage access restrictions
 }
 
 export const productService = {
   /**
-   * Fetches paginated & filtered products
+   * Fetches paginated & filtered products directly from Supabase.
+   * Never falls back to dummy, mock, or hardcoded products.
    */
   async getProducts(params: ProductFilterParams = {}): Promise<PaginatedProductsResponse> {
     const {
@@ -41,270 +26,246 @@ export const productService = {
       pageSize = 12,
     } = params;
 
-    if (isSupabaseConfigured && supabase) {
-      try {
-        let query = supabase.from('products').select('*', { count: 'exact' });
+    if (!isSupabaseConfigured || !supabase) {
+      console.warn('[productService] Supabase is not configured. Please set Supabase environment variables.');
+      return {
+        products: [],
+        total: 0,
+        page,
+        pageSize,
+        totalPages: 1,
+      };
+    }
 
-        if (featuredOnly) {
-          query = query.eq('featured', true);
-        }
+    try {
+      let query = supabase.from('products').select('*', { count: 'exact' });
 
-        if (category && category !== 'All Categories') {
-          query = query.eq('category', category);
-        }
-
-        if (stock_status && stock_status !== 'all') {
-          query = query.eq('stock_status', stock_status);
-        }
-
-        if (search.trim()) {
-          const s = search.trim();
-          query = query.or(`name.ilike.%${s}%,description.ilike.%${s}%,category.ilike.%${s}%`);
-        }
-
-        // Sorting
-        switch (sortBy) {
-          case 'price_asc':
-            query = query.order('price', { ascending: true });
-            break;
-          case 'price_desc':
-            query = query.order('price', { ascending: false });
-            break;
-          case 'name_asc':
-            query = query.order('name', { ascending: true });
-            break;
-          case 'newest':
-          default:
-            query = query.order('created_at', { ascending: false });
-            break;
-        }
-
-        const from = (page - 1) * pageSize;
-        const to = from + pageSize - 1;
-        query = query.range(from, to);
-
-        const { data, count, error } = await query;
-        if (error) throw error;
-
-        const total = count || 0;
-        return {
-          products: (data as Product[]) || [],
-          total,
-          page,
-          pageSize,
-          totalPages: Math.ceil(total / pageSize) || 1,
-        };
-      } catch (err) {
-        console.warn('Supabase fetch failed, falling back to local dataset:', err);
+      if (featuredOnly) {
+        query = query.eq('featured', true);
       }
+
+      if (category && category !== 'All Categories') {
+        query = query.eq('category', category);
+      }
+
+      if (stock_status && stock_status !== 'all') {
+        query = query.eq('stock_status', stock_status);
+      }
+
+      // Sanitize search to prevent PostgREST syntax errors with special characters
+      if (search.trim()) {
+        const sanitized = search.trim().replace(/[,%()]/g, ' ').trim();
+        if (sanitized) {
+          query = query.or(`name.ilike.%${sanitized}%,description.ilike.%${sanitized}%,category.ilike.%${sanitized}%`);
+        }
+      }
+
+      // Sorting
+      switch (sortBy) {
+        case 'price_asc':
+          query = query.order('price', { ascending: true });
+          break;
+        case 'price_desc':
+          query = query.order('price', { ascending: false });
+          break;
+        case 'name_asc':
+          query = query.order('name', { ascending: true });
+          break;
+        case 'newest':
+        default:
+          query = query.order('created_at', { ascending: false });
+          break;
+      }
+
+      const from = Math.max(0, (page - 1) * pageSize);
+      const to = from + pageSize - 1;
+      query = query.range(from, to);
+
+      const { data, count, error } = await query;
+      if (error) {
+        console.error('[productService] Supabase query error:', error);
+        throw error;
+      }
+
+      const total = count || 0;
+      return {
+        products: (data as Product[]) || [],
+        total,
+        page,
+        pageSize,
+        totalPages: Math.max(1, Math.ceil(total / pageSize)),
+      };
+    } catch (err) {
+      console.error('[productService] Failed to fetch products from Supabase:', err);
+      return {
+        products: [],
+        total: 0,
+        page,
+        pageSize,
+        totalPages: 1,
+      };
     }
-
-    // Local / Mock Provider Mode
-    let items = getLocalProducts();
-
-    if (featuredOnly) {
-      items = items.filter((p) => p.featured);
-    }
-
-    if (category && category !== 'All Categories') {
-      items = items.filter((p) => p.category.toLowerCase() === category.toLowerCase());
-    }
-
-    if (stock_status && stock_status !== 'all') {
-      items = items.filter((p) => p.stock_status === stock_status);
-    }
-
-    if (search.trim()) {
-      const q = search.trim().toLowerCase();
-      items = items.filter(
-        (p) =>
-          p.name.toLowerCase().includes(q) ||
-          (p.description && p.description.toLowerCase().includes(q)) ||
-          p.category.toLowerCase().includes(q)
-      );
-    }
-
-    // Sorting
-    items = [...items].sort((a, b) => {
-      if (sortBy === 'price_asc') return a.price - b.price;
-      if (sortBy === 'price_desc') return b.price - a.price;
-      if (sortBy === 'name_asc') return a.name.localeCompare(b.name);
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    });
-
-    const total = items.length;
-    const from = (page - 1) * pageSize;
-    const paginated = items.slice(from, from + pageSize);
-
-    return {
-      products: paginated,
-      total,
-      page,
-      pageSize,
-      totalPages: Math.ceil(total / pageSize) || 1,
-    };
   },
 
   /**
-   * Fetches a single product by its URL-friendly slug
+   * Fetches a single product by its URL-friendly slug directly from Supabase.
    */
   async getProductBySlug(slug: string): Promise<Product | null> {
-    if (isSupabaseConfigured && supabase) {
-      try {
-        const { data, error } = await supabase
-          .from('products')
-          .select('*')
-          .eq('slug', slug)
-          .single();
-
-        if (error && error.code !== 'PGRST116') throw error;
-        if (data) return data as Product;
-      } catch (err) {
-        console.warn('Supabase fetch by slug failed, checking local dataset:', err);
-      }
+    if (!isSupabaseConfigured || !supabase) {
+      return null;
     }
 
-    const items = getLocalProducts();
-    const product = items.find((p) => p.slug === slug);
-    return product || null;
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('slug', slug)
+        .maybeSingle();
+
+      if (error) {
+        console.error(`[productService] Error fetching product by slug "${slug}":`, error);
+        return null;
+      }
+
+      return (data as Product) || null;
+    } catch (err) {
+      console.error(`[productService] Exception fetching product by slug "${slug}":`, err);
+      return null;
+    }
   },
 
   /**
-   * Fetches a single product by its UUID
+   * Fetches a single product by its UUID directly from Supabase.
    */
   async getProductById(id: string): Promise<Product | null> {
-    if (isSupabaseConfigured && supabase) {
-      try {
-        const { data, error } = await supabase
-          .from('products')
-          .select('*')
-          .eq('id', id)
-          .single();
-
-        if (error && error.code !== 'PGRST116') throw error;
-        if (data) return data as Product;
-      } catch (err) {
-        console.warn('Supabase fetch by id failed, checking local dataset:', err);
-      }
+    if (!isSupabaseConfigured || !supabase) {
+      return null;
     }
 
-    const items = getLocalProducts();
-    const product = items.find((p) => p.id === id);
-    return product || null;
+    try {
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .eq('id', id)
+        .maybeSingle();
+
+      if (error) {
+        console.error(`[productService] Error fetching product by id "${id}":`, error);
+        return null;
+      }
+
+      return (data as Product) || null;
+    } catch (err) {
+      console.error(`[productService] Exception fetching product by id "${id}":`, err);
+      return null;
+    }
   },
 
   /**
-   * Creates a new product (Admin Only)
+   * Creates a new product directly in Supabase (Admin Only).
    */
   async createProduct(
     productData: Omit<Product, 'id' | 'created_at' | 'updated_at'>
   ): Promise<Product> {
-    if (isSupabaseConfigured && supabase) {
-      try {
-        const { data, error } = await supabase
-          .from('products')
-          .insert([productData])
-          .select()
-          .single();
-
-        if (error) throw error;
-        return data as Product;
-      } catch (err) {
-        console.warn('Supabase insert failed, saving to local store:', err);
-      }
+    if (!isSupabaseConfigured || !supabase) {
+      throw new Error('Supabase is not configured. Cannot create product.');
     }
 
-    // Local mode creation
-    const newProduct: Product = {
-      ...productData,
-      id: crypto.randomUUID ? crypto.randomUUID() : `local-${Date.now()}`,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-    };
+    const { data, error } = await supabase
+      .from('products')
+      .insert([productData])
+      .select()
+      .single();
 
-    const items = getLocalProducts();
-    items.unshift(newProduct);
-    saveLocalProducts(items);
-    return newProduct;
+    if (error) {
+      throw new Error(error.message || 'Failed to insert product into database.');
+    }
+
+    return data as Product;
   },
 
   /**
-   * Updates an existing product (Admin Only)
+   * Updates an existing product directly in Supabase (Admin Only).
    */
   async updateProduct(id: string, updates: Partial<Product>): Promise<Product> {
-    if (isSupabaseConfigured && supabase) {
-      try {
-        const { data, error } = await supabase
-          .from('products')
-          .update(updates)
-          .eq('id', id)
-          .select()
-          .single();
-
-        if (error) throw error;
-        return data as Product;
-      } catch (err) {
-        console.warn('Supabase update failed, updating local store:', err);
-      }
+    if (!isSupabaseConfigured || !supabase) {
+      throw new Error('Supabase is not configured. Cannot update product.');
     }
 
-    // Local mode update
-    const items = getLocalProducts();
-    const index = items.findIndex((p) => p.id === id);
-    if (index === -1) {
-      throw new Error(`Product with ID ${id} not found.`);
+    const { data, error } = await supabase
+      .from('products')
+      .update(updates)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(error.message || 'Failed to update product in database.');
     }
 
-    const updatedProduct: Product = {
-      ...items[index],
-      ...updates,
-      updated_at: new Date().toISOString(),
-    };
-
-    items[index] = updatedProduct;
-    saveLocalProducts(items);
-    return updatedProduct;
+    return data as Product;
   },
 
   /**
-   * Deletes a product by ID (Admin Only)
+   * Deletes a product by ID directly from Supabase (Admin Only).
    */
   async deleteProduct(id: string): Promise<boolean> {
-    if (isSupabaseConfigured && supabase) {
-      try {
-        const { error } = await supabase.from('products').delete().eq('id', id);
-        if (error) throw error;
-        return true;
-      } catch (err) {
-        console.warn('Supabase delete failed, deleting from local store:', err);
-      }
+    if (!isSupabaseConfigured || !supabase) {
+      throw new Error('Supabase is not configured. Cannot delete product.');
     }
 
-    // Local mode delete
-    const items = getLocalProducts();
-    const filtered = items.filter((p) => p.id !== id);
-    saveLocalProducts(filtered);
+    const { error } = await supabase.from('products').delete().eq('id', id);
+    if (error) {
+      throw new Error(error.message || 'Failed to delete product from database.');
+    }
+
     return true;
   },
 
   /**
-   * Aggregates stats for the Admin Dashboard
+   * Aggregates stats for the Admin Dashboard directly from Supabase.
    */
   async getDashboardStats(): Promise<DashboardStats> {
-    const response = await this.getProducts({ pageSize: 1000 });
-    const all = response.products;
+    if (!isSupabaseConfigured || !supabase) {
+      return {
+        totalProducts: 0,
+        featuredCount: 0,
+        categoriesCount: 0,
+        outOfStockCount: 0,
+        recentProducts: [],
+      };
+    }
 
-    const categoriesSet = new Set(all.map((p) => p.category));
-    const featuredCount = all.filter((p) => p.featured).length;
-    const outOfStockCount = all.filter((p) => p.stock_status === 'out_of_stock').length;
-    const recentProducts = all.slice(0, 5);
+    try {
+      const [allProductsRes, featuredRes, outOfStockRes, recentRes] = await Promise.all([
+        supabase.from('products').select('category', { count: 'exact' }),
+        supabase.from('products').select('id', { count: 'exact', head: true }).eq('featured', true),
+        supabase.from('products').select('id', { count: 'exact', head: true }).eq('stock_status', 'out_of_stock'),
+        supabase.from('products').select('*').order('created_at', { ascending: false }).limit(5),
+      ]);
 
-    return {
-      totalProducts: all.length,
-      featuredCount,
-      categoriesCount: categoriesSet.size,
-      outOfStockCount,
-      recentProducts,
-    };
+      const totalProducts = allProductsRes.count || 0;
+      const categoriesSet = new Set((allProductsRes.data || []).map((p) => p.category));
+      const featuredCount = featuredRes.count || 0;
+      const outOfStockCount = outOfStockRes.count || 0;
+      const recentProducts = (recentRes.data as Product[]) || [];
+
+      return {
+        totalProducts,
+        featuredCount,
+        categoriesCount: categoriesSet.size,
+        outOfStockCount,
+        recentProducts,
+      };
+    } catch (err) {
+      console.error('[productService] Error loading dashboard stats:', err);
+      return {
+        totalProducts: 0,
+        featuredCount: 0,
+        categoriesCount: 0,
+        outOfStockCount: 0,
+        recentProducts: [],
+      };
+    }
   },
 };

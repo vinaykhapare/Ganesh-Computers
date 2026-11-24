@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { Product } from '../../types';
 import { generateSlug } from '../../utils/slugify';
 import { storageService } from '../../services/storageService';
-import { CATEGORIES_LIST } from '../../lib/mockData';
+import { CATEGORIES_LIST } from '../../constants/categories';
 import { Button } from '../common/Button';
 import { 
   Upload, 
@@ -67,7 +67,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
     defaultValues: {
       name: initialData?.name || '',
       slug: initialData?.slug || '',
-      category: initialData?.category || 'Components',
+      category: initialData?.category || 'Computer & Laptops',
       price: initialData?.price || 0,
       stock_status: initialData?.stock_status || 'in_stock',
       featured: initialData?.featured || false,
@@ -147,7 +147,7 @@ export const ProductForm: React.FC<ProductFormProps> = ({
               <input
                 type="text"
                 {...register('name')}
-                placeholder="e.g. ASUS ROG Strix G16 (2025) Intel i9 / RTX 4070"
+                placeholder="Enter product name (e.g. Wireless Mouse, Laptop Model)"
                 className="w-full px-4 py-3 text-sm bg-slate-50/70 border border-slate-200 rounded-xl focus:outline-none focus:border-[#E11D48] focus:bg-white focus:ring-4 focus:ring-rose-500/10 transition-all font-sans"
               />
               {errors.name && (
