@@ -18,24 +18,24 @@ export function App() {
             toastOptions={{
               duration: 3500,
               style: {
-                background: '#0B0F19',
+                background: '#0F172A',
                 color: '#fff',
-                borderRadius: '1rem',
-                border: '1px solid rgba(255, 255, 255, 0.1)',
-                padding: '12px 18px',
+                borderRadius: '0.5rem',
+                border: '1px solid #1E293B',
+                padding: '10px 16px',
                 fontSize: '13px',
                 fontWeight: 500,
               },
               success: {
                 iconTheme: {
-                  primary: '#25D366',
-                  secondary: '#0B0F19',
+                  primary: '#16A34A',
+                  secondary: '#0F172A',
                 },
               },
               error: {
                 iconTheme: {
-                  primary: '#E11D48',
-                  secondary: '#0B0F19',
+                  primary: '#DC2626',
+                  secondary: '#0F172A',
                 },
               },
             }}

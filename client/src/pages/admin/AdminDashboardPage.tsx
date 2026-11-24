@@ -1,24 +1,22 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { productService } from '../../services/productService';
 import { DashboardStats } from '../../types';
 import { formatPrice } from '../../utils/formatters';
-import { StockBadge } from '../../components/common/Badge';
-import { Spinner } from '../../components/common/Spinner';
-import { 
-  Package, 
-  Sparkles, 
-  Layers, 
-  AlertCircle, 
-  PlusCircle, 
-  ArrowRight, 
+import { Badge } from '../../components/ui/badge';
+import { Button } from '../../components/ui/button';
+import { Skeleton } from '../../components/ui/skeleton';
+import {
+  Package,
+  Sparkles,
+  Layers,
+  AlertCircle,
+  PlusCircle,
   ExternalLink,
   Edit,
   Eye,
-  Cpu
+  Cpu,
 } from 'lucide-react';
-import { InteractiveSpotlight } from '../../components/common/InteractiveSpotlight';
 
 export const AdminDashboardPage: React.FC = () => {
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -40,207 +38,171 @@ export const AdminDashboardPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-[50vh] flex items-center justify-center">
-        <Spinner size="lg" label="Compiling Dashboard Metrics..." />
+      <div className="space-y-6">
+        <Skeleton className="h-32 w-full rounded-xl" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-24 w-full rounded-xl" />
+          ))}
+        </div>
       </div>
     );
   }
 
   const statCards = [
     {
-      label: 'Total Products in Catalog',
+      label: 'Total Catalog Products',
       value: stats?.totalProducts || 0,
-      icon: <Package className="w-5 h-5 text-blue-500" />,
-      bg: 'bg-blue-50/80 border-blue-200/80',
+      icon: <Package className="w-5 h-5 text-blue-600" />,
+      sub: 'Items stored in Supabase',
     },
     {
       label: 'Featured Products',
       value: stats?.featuredCount || 0,
-      icon: <Sparkles className="w-5 h-5 text-[#E11D48]" />,
-      bg: 'bg-rose-50/80 border-rose-200/80',
+      icon: <Sparkles className="w-5 h-5 text-rose-600" />,
+      sub: 'Shown on store highlights',
     },
     {
       label: 'Active Departments',
       value: stats?.categoriesCount || 0,
-      icon: <Layers className="w-5 h-5 text-purple-500" />,
-      bg: 'bg-purple-50/80 border-purple-200/80',
+      icon: <Layers className="w-5 h-5 text-indigo-600" />,
+      sub: 'Hardware categories active',
     },
     {
       label: 'Out of Stock Items',
       value: stats?.outOfStockCount || 0,
-      icon: <AlertCircle className="w-5 h-5 text-amber-500" />,
-      bg: 'bg-amber-50/80 border-amber-200/80',
+      icon: <AlertCircle className="w-5 h-5 text-amber-600" />,
+      sub: 'Needs replenishment',
     },
   ];
 
   return (
-    <div className="space-y-8">
-      {/* Welcome Banner */}
-      <div className="bg-[#090D16] rounded-3xl p-6 sm:p-8 text-white border border-white/10 shadow-xl flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-80 h-80 bg-rose-600/15 rounded-full blur-3xl pointer-events-none" />
-
-        <div className="relative z-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 text-rose-300 text-xs font-heading font-bold uppercase tracking-wider mb-3">
+    <div className="space-y-6">
+      {/* Welcome Retail Banner */}
+      <div className="bg-slate-900 rounded-xl p-6 sm:p-7 text-white border border-slate-800 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        <div>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-slate-800 text-rose-300 text-xs font-semibold mb-2 border border-slate-700">
             <Cpu className="w-3.5 h-3.5" />
             <span>Store Operations Hub</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black font-display tracking-tight text-white">
+          <h1 className="text-xl sm:text-2xl font-bold font-heading text-white">
             Ganesh Computers Control Center
           </h1>
-          <p className="text-xs sm:text-sm text-slate-300/90 font-sans mt-1 max-w-xl">
-            Real-time management for store inventory, pricing, high-resolution product photos, and customer WhatsApp inquiries.
+          <p className="text-xs sm:text-sm text-slate-300 font-sans mt-1 max-w-xl">
+            Live catalog management for showroom inventory, pricing, specifications, and customer inquiries.
           </p>
         </div>
 
-        <div className="relative z-10 flex flex-wrap items-center gap-3">
-          <Link
-            to="/admin/products/new"
-            className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-[#E11D48] hover:bg-[#BE123C] text-white font-heading font-bold text-xs sm:text-sm shadow-md shadow-rose-600/30 transition-all cursor-pointer"
-          >
-            <PlusCircle className="w-4 h-4" />
-            <span>Add New Product</span>
+        <div className="flex flex-wrap items-center gap-3 shrink-0">
+          <Link to="/admin/products/new">
+            <Button variant="default" size="sm" className="bg-white text-slate-900 hover:bg-slate-100 font-bold gap-2">
+              <PlusCircle className="w-4 h-4" />
+              <span>Add Hardware Item</span>
+            </Button>
           </Link>
-          <Link
-            to="/products"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-3 rounded-2xl bg-white/10 hover:bg-white/20 text-white font-heading font-semibold text-xs sm:text-sm transition-colors border border-white/10"
-          >
-            <ExternalLink className="w-4 h-4" />
-            <span>View Public Storefront</span>
+          <Link to="/admin/products">
+            <Button variant="outline" size="sm" className="border-slate-700 text-slate-200 hover:bg-slate-800 hover:text-white font-semibold">
+              Manage Inventory
+            </Button>
           </Link>
         </div>
       </div>
 
-      {/* KPI Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+      {/* Metric Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map((card, idx) => (
-          <InteractiveSpotlight
+          <div
             key={idx}
-            className="bg-white p-6 rounded-3xl border border-slate-200/90 shadow-2xs flex items-center justify-between"
+            className="rounded-xl border border-slate-200 bg-white p-5 shadow-2xs space-y-3"
           >
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-semibold text-slate-500 font-sans">{card.label}</span>
+              <div className="p-2 rounded-lg bg-slate-50 border border-slate-100">{card.icon}</div>
+            </div>
             <div>
-              <p className="text-xs font-heading font-bold text-slate-400 uppercase tracking-wider mb-1">
-                {card.label}
-              </p>
-              <p className="text-3xl font-black text-slate-900 font-display">
-                {card.value}
-              </p>
+              <div className="text-2xl font-bold font-heading text-slate-900">{card.value}</div>
+              <p className="text-[11px] text-slate-400 font-sans mt-0.5">{card.sub}</p>
             </div>
-            <div className={`w-12 h-12 rounded-2xl ${card.bg} border flex items-center justify-center shrink-0`}>
-              {card.icon}
-            </div>
-          </InteractiveSpotlight>
+          </div>
         ))}
       </div>
 
-      {/* Recent Products Table */}
-      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-2xs overflow-hidden">
-        <div className="p-6 border-b border-slate-100 flex items-center justify-between">
+      {/* Recent Catalog Items Table */}
+      <div className="rounded-xl border border-slate-200 bg-white shadow-2xs overflow-hidden">
+        <div className="p-5 border-b border-slate-100 flex items-center justify-between">
           <div>
-            <h2 className="text-lg font-bold text-slate-900 font-heading">
-              Recently Added Inventory
-            </h2>
-            <p className="text-xs text-slate-500 font-sans">
-              The latest items published to your public storefront catalog.
+            <h3 className="font-heading text-base font-bold text-slate-900">
+              Recently Cataloged Products
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Latest items synchronized from your Supabase database.
             </p>
           </div>
-          <Link
-            to="/admin/products"
-            className="text-xs font-heading font-bold text-[#E11D48] hover:text-[#BE123C] flex items-center gap-1"
-          >
-            <span>Manage All Hardware</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+          <Link to="/admin/products">
+            <Button variant="outline" size="sm" className="text-xs font-semibold">
+              View All ({stats?.totalProducts || 0})
+            </Button>
           </Link>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600">
-            <thead className="bg-slate-50 text-[11px] font-heading font-bold uppercase tracking-wider text-slate-500 border-b border-slate-100">
-              <tr>
-                <th className="px-6 py-3.5">Product</th>
-                <th className="px-6 py-3.5">Department</th>
-                <th className="px-6 py-3.5">Store Price</th>
-                <th className="px-6 py-3.5">Availability</th>
-                <th className="px-6 py-3.5">Featured</th>
-                <th className="px-6 py-3.5 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {stats?.recentProducts && stats.recentProducts.length > 0 ? (
-                stats.recentProducts.map((p) => (
-                  <tr key={p.id} className="hover:bg-slate-50/70 transition-colors">
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-slate-100 border border-slate-200 shrink-0 overflow-hidden flex items-center justify-center">
-                          {p.image_url ? (
-                            <img
-                              src={p.image_url}
-                              alt={p.name}
-                              className="w-full h-full object-cover"
-                            />
-                          ) : (
-                            <Package className="w-4 h-4 text-slate-400" />
-                          )}
-                        </div>
-                        <div>
-                          <p className="font-heading font-bold text-slate-900 line-clamp-1">{p.name}</p>
-                          <p className="text-[11px] text-slate-400">{p.slug}</p>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="text-xs font-sans text-slate-600 font-medium">
-                        {p.category}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 font-display font-black text-slate-900">
-                      {formatPrice(p.price)}
-                    </td>
-                    <td className="px-6 py-4">
-                      <StockBadge status={p.stock_status} />
-                    </td>
-                    <td className="px-6 py-4">
-                      {p.featured ? (
-                        <span className="inline-flex items-center gap-1 text-[11px] font-heading font-bold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-md">
-                          <Sparkles className="w-3 h-3" />
-                          Featured
-                        </span>
-                      ) : (
-                        <span className="text-xs text-slate-400">—</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Link
-                          to={`/products/${p.slug}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
-                          title="View on site"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </Link>
-                        <Link
-                          to={`/admin/products/edit/${p.id}`}
-                          className="p-1.5 text-slate-600 hover:text-[#E11D48] hover:bg-rose-50 rounded-lg transition-colors"
-                          title="Edit product"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Link>
-                      </div>
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-slate-400 text-xs">
-                    No products added yet. Click &ldquo;Add New Product&rdquo; above to publish your first inventory item!
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+        <div className="divide-y divide-slate-100">
+          {stats?.recentProducts && stats.recentProducts.length > 0 ? (
+            stats.recentProducts.map((item) => (
+              <div
+                key={item.id}
+                className="p-4 sm:px-6 flex items-center justify-between gap-4 hover:bg-slate-50/60 transition-colors"
+              >
+                <div className="flex items-center gap-3.5 min-w-0">
+                  <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 flex items-center justify-center shrink-0 overflow-hidden">
+                    {item.image_url ? (
+                      <img
+                        src={item.image_url}
+                        alt={item.name}
+                        className="max-h-full max-w-full object-contain"
+                      />
+                    ) : (
+                      <Package className="w-5 h-5 text-slate-400" />
+                    )}
+                  </div>
+                  <div className="min-w-0">
+                    <Link
+                      to={`/admin/products/edit/${item.id}`}
+                      className="text-xs sm:text-sm font-bold font-heading text-slate-900 hover:text-rose-600 transition-colors line-clamp-1"
+                    >
+                      {item.name}
+                    </Link>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <span className="text-[11px] text-slate-400 font-mono">/{item.slug}</span>
+                      <span className="text-slate-300">•</span>
+                      <span className="text-[11px] text-slate-600 font-medium">{item.category}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-4 shrink-0">
+                  <span className="text-sm font-bold font-heading text-slate-900">
+                    {formatPrice(item.price)}
+                  </span>
+                  <div className="flex items-center gap-1">
+                    <Link to={`/products/${item.slug}`} target="_blank" rel="noopener noreferrer">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400 hover:text-slate-700">
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                    </Link>
+                    <Link to={`/admin/products/edit/${item.id}`}>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-600 hover:text-slate-900">
+                        <Edit className="w-4 h-4" />
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="p-8 text-center text-xs text-slate-500">
+              No products found in the catalog. Click "Add Hardware Item" to publish your first product.
+            </div>
+          )}
         </div>
       </div>
     </div>

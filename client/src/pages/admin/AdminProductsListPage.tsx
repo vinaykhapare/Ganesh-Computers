@@ -4,24 +4,25 @@ import { useProducts } from '../../hooks/useProducts';
 import { productService } from '../../services/productService';
 import { Product, StockStatus } from '../../types';
 import { formatPrice } from '../../utils/formatters';
-import { StockBadge } from '../../components/common/Badge';
-import { Button } from '../../components/common/Button';
-import { Spinner } from '../../components/common/Spinner';
-import { Modal } from '../../components/common/Modal';
+import { Button } from '../../components/ui/button';
+import { Badge } from '../../components/ui/badge';
+import { Input } from '../../components/ui/input';
+import { Select } from '../../components/ui/select';
+import { Skeleton } from '../../components/ui/skeleton';
+import { Dialog } from '../../components/ui/dialog';
 import { CATEGORIES_LIST } from '../../constants/categories';
-import { 
-  PlusCircle, 
-  Search, 
-  Filter, 
-  Sparkles, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  ChevronLeft, 
-  ChevronRight, 
-  AlertTriangle,
+import {
+  PlusCircle,
+  Search,
+  Sparkles,
+  Edit,
+  Trash2,
+  Eye,
+  ChevronLeft,
+  ChevronRight,
   RefreshCw,
-  Package
+  Package,
+  AlertTriangle,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
@@ -77,7 +78,7 @@ export const AdminProductsListPage: React.FC = () => {
       });
       toast.success(
         product.featured
-          ? `Removed "${product.name}" from featured showcase.`
+          ? `Removed "${product.name}" from homepage showcase.`
           : `Featured "${product.name}" on homepage showcase.`
       );
       refetch();
@@ -102,118 +103,136 @@ export const AdminProductsListPage: React.FC = () => {
     }
   };
 
+  const getStockBadge = (status: StockStatus) => {
+    switch (status) {
+      case 'in_stock':
+        return <Badge variant="success">In Stock</Badge>;
+      case 'limited_stock':
+        return <Badge variant="warning">Limited Stock</Badge>;
+      case 'out_of_stock':
+        return <Badge variant="destructive">Out of Stock</Badge>;
+      default:
+        return <Badge variant="secondary">Available</Badge>;
+    }
+  };
+
   return (
     <div className="space-y-6">
       {/* Header bar */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900 font-display">
+          <h1 className="text-xl font-bold font-heading text-slate-900 tracking-tight">
             Hardware Catalog Inventory
           </h1>
           <p className="text-xs text-slate-500 font-sans mt-0.5">
-            Manage your hardware products, prices, stock statuses and visibility.
+            Manage your hardware products, prices, stock statuses, and showcase visibility.
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <button
+        <div className="flex items-center gap-2.5">
+          <Button
+            variant="outline"
+            size="sm"
             onClick={() => refetch()}
-            className="p-2.5 rounded-2xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition-colors cursor-pointer"
+            className="gap-1.5 text-xs font-semibold"
             title="Refresh Catalog"
           >
-            <RefreshCw className="w-4 h-4" />
-          </button>
+            <RefreshCw className="w-3.5 h-3.5" />
+            <span>Refresh</span>
+          </Button>
 
           <Link to="/admin/products/new">
             <Button
-              variant="primary"
-              size="md"
-              leftIcon={<PlusCircle className="w-4 h-4" />}
+              variant="default"
+              size="sm"
+              className="bg-slate-900 hover:bg-slate-800 text-white font-bold gap-1.5 text-xs"
             >
-              Add New Product
+              <PlusCircle className="w-4 h-4" />
+              <span>Add Product</span>
             </Button>
           </Link>
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="bg-white p-4 rounded-3xl border border-slate-200/90 shadow-2xs grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+      {/* Filter and Search Toolbar */}
+      <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs grid grid-cols-1 sm:grid-cols-3 lg:grid-cols-12 gap-3 items-center">
         {/* Search Input */}
-        <div className="sm:col-span-2 relative">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
+        <div className="lg:col-span-6 relative">
+          <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <Input
             type="text"
             value={searchTerm}
             onChange={handleSearchChange}
-            placeholder="Search by name, slug or specs..."
-            className="w-full pl-10 pr-4 py-2.5 text-xs sm:text-sm font-sans bg-slate-50 border border-slate-200/90 rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#E11D48]"
+            placeholder="Search by product name, slug, or specs..."
+            className="pl-9 h-10 text-xs sm:text-sm"
           />
         </div>
 
         {/* Category Dropdown */}
-        <div>
-          <select
-            value={categoryFilter}
-            onChange={handleCategoryChange}
-            className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-3.5 py-2.5 text-xs sm:text-sm font-heading font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#E11D48] cursor-pointer"
-          >
+        <div className="lg:col-span-3">
+          <Select value={categoryFilter} onChange={handleCategoryChange}>
             {CATEGORIES_LIST.map((c: string) => (
               <option key={c} value={c}>
                 {c}
               </option>
             ))}
-          </select>
+          </Select>
         </div>
 
         {/* Stock Filter */}
-        <div>
-          <select
-            value={stockFilter}
-            onChange={handleStockChange}
-            className="w-full bg-slate-50 border border-slate-200/90 rounded-2xl px-3.5 py-2.5 text-xs sm:text-sm font-heading font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#E11D48] cursor-pointer"
-          >
+        <div className="lg:col-span-3">
+          <Select value={stockFilter} onChange={handleStockChange}>
             <option value="all">All Availability</option>
-            <option value="in_stock">In Stock</option>
+            <option value="in_stock">In Stock Only</option>
             <option value="limited_stock">Limited Stock</option>
             <option value="out_of_stock">Out of Stock</option>
-          </select>
+          </Select>
         </div>
       </div>
 
       {/* Products Table */}
-      <div className="bg-white rounded-3xl border border-slate-200/90 shadow-2xs overflow-hidden">
+      <div className="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
         {isLoading ? (
-          <div className="py-20 flex justify-center">
-            <Spinner size="lg" label="Loading product inventory..." />
+          <div className="p-8 space-y-4">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-4">
+                <Skeleton className="h-10 w-10 rounded-md" />
+                <div className="space-y-1.5 flex-1">
+                  <Skeleton className="h-4 w-1/3" />
+                  <Skeleton className="h-3 w-1/4" />
+                </div>
+                <Skeleton className="h-4 w-20" />
+              </div>
+            ))}
           </div>
         ) : products.length === 0 ? (
           <div className="py-16 text-center text-slate-500">
-            <Package className="w-12 h-12 text-slate-300 mx-auto mb-3" />
-            <h3 className="font-bold font-heading text-slate-800 text-base mb-1">No products found</h3>
-            <p className="text-xs text-slate-400 mb-4 font-sans">
-              Try adjusting your search or department filters.
+            <Package className="w-10 h-10 text-slate-300 mx-auto mb-2" />
+            <h3 className="font-bold font-heading text-slate-800 text-sm mb-1">No products found</h3>
+            <p className="text-xs text-slate-400 font-sans">
+              Try adjusting your search query or department filters.
             </p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-sm text-slate-600">
-              <thead className="bg-slate-50 text-[11px] font-heading font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200/80">
+              <thead className="bg-slate-50 text-[11px] font-heading font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200">
                 <tr>
-                  <th className="px-6 py-4">Product Details</th>
-                  <th className="px-4 py-4">Department</th>
-                  <th className="px-4 py-4">Store Price</th>
-                  <th className="px-4 py-4">Stock Status</th>
-                  <th className="px-4 py-4 text-center">Featured</th>
-                  <th className="px-6 py-4 text-right">Actions</th>
+                  <th className="px-5 py-3">Product Details</th>
+                  <th className="px-4 py-3">Department</th>
+                  <th className="px-4 py-3">Price (INR)</th>
+                  <th className="px-4 py-3">Stock Status</th>
+                  <th className="px-4 py-3 text-center">Featured</th>
+                  <th className="px-5 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {products.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50/70 transition-colors">
                     {/* Image & Title */}
-                    <td className="px-6 py-4">
+                    <td className="px-5 py-3.5">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-2xl bg-slate-100 border border-slate-200 shrink-0 overflow-hidden flex items-center justify-center p-1">
+                        <div className="w-10 h-10 rounded-lg bg-slate-100 border border-slate-200 shrink-0 overflow-hidden flex items-center justify-center p-1">
                           {item.image_url ? (
                             <img
                               src={item.image_url}
@@ -221,13 +240,13 @@ export const AdminProductsListPage: React.FC = () => {
                               className="max-h-full max-w-full object-contain"
                             />
                           ) : (
-                            <Package className="w-5 h-5 text-slate-400" />
+                            <Package className="w-4 h-4 text-slate-400" />
                           )}
                         </div>
                         <div className="max-w-xs sm:max-w-sm">
                           <Link
                             to={`/admin/products/edit/${item.id}`}
-                            className="font-heading font-bold text-slate-900 hover:text-[#E11D48] transition-colors line-clamp-1"
+                            className="font-heading font-semibold text-slate-900 hover:text-rose-600 transition-colors text-xs sm:text-sm line-clamp-1"
                           >
                             {item.name}
                           </Link>
@@ -239,59 +258,59 @@ export const AdminProductsListPage: React.FC = () => {
                     </td>
 
                     {/* Category */}
-                    <td className="px-4 py-4">
-                      <span className="text-xs font-heading font-semibold px-2.5 py-1 rounded-lg bg-slate-100 text-slate-700">
+                    <td className="px-4 py-3.5">
+                      <span className="text-xs font-medium px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">
                         {item.category}
                       </span>
                     </td>
 
                     {/* Price */}
-                    <td className="px-4 py-4 font-black text-slate-900 font-display">
+                    <td className="px-4 py-3.5 font-bold text-slate-900 font-heading text-xs sm:text-sm">
                       {formatPrice(item.price)}
                     </td>
 
                     {/* Stock status */}
-                    <td className="px-4 py-4">
-                      <StockBadge status={item.stock_status} />
+                    <td className="px-4 py-3.5">
+                      {getStockBadge(item.stock_status)}
                     </td>
 
                     {/* Featured toggle */}
-                    <td className="px-4 py-4 text-center">
+                    <td className="px-4 py-3.5 text-center">
                       <button
                         onClick={() => handleToggleFeatured(item)}
-                        className={`p-1.5 rounded-xl border transition-all cursor-pointer ${
+                        className={`p-1.5 rounded-md border transition-all cursor-pointer ${
                           item.featured
-                            ? 'bg-rose-50 border-rose-200 text-[#E11D48]'
+                            ? 'bg-rose-50 border-rose-200 text-rose-600'
                             : 'bg-slate-50 border-slate-200 text-slate-300 hover:text-slate-600'
                         }`}
-                        title={item.featured ? 'Featured on home' : 'Click to mark featured'}
+                        title={item.featured ? 'Featured on homepage' : 'Click to feature on homepage'}
                       >
-                        <Sparkles className="w-4 h-4 fill-current" />
+                        <Sparkles className="w-3.5 h-3.5 fill-current" />
                       </button>
                     </td>
 
                     {/* Actions */}
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-2">
+                    <td className="px-5 py-3.5 text-right">
+                      <div className="flex items-center justify-end gap-1.5">
                         <Link
                           to={`/products/${item.slug}`}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors"
+                          className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-md transition-colors"
                           title="View on site"
                         >
                           <Eye className="w-4 h-4" />
                         </Link>
                         <Link
                           to={`/admin/products/edit/${item.id}`}
-                          className="p-2 text-slate-600 hover:text-[#E11D48] hover:bg-rose-50 rounded-xl transition-colors"
+                          className="p-1.5 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-md transition-colors"
                           title="Edit product"
                         >
                           <Edit className="w-4 h-4" />
                         </Link>
                         <button
                           onClick={() => setProductToDelete(item)}
-                          className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
+                          className="p-1.5 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-md transition-colors cursor-pointer"
                           title="Delete product"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -309,64 +328,73 @@ export const AdminProductsListPage: React.FC = () => {
         {totalPages > 1 && (
           <div className="p-4 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500 font-sans">
             <div>
-              Showing page <span className="font-heading font-bold text-slate-900">{page}</span> of{' '}
-              <span className="font-heading font-bold text-slate-900">{totalPages}</span> ({total} items)
+              Showing page <strong className="text-slate-900">{page}</strong> of{' '}
+              <strong className="text-slate-900">{totalPages}</strong> ({total} total products)
             </div>
-            <div className="flex items-center gap-2">
-              <button
+            <div className="flex items-center gap-1.5">
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 disabled:opacity-40 transition-colors cursor-pointer"
+                className="h-8 text-xs gap-1"
               >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button
+                <ChevronLeft className="w-3.5 h-3.5" />
+                <span>Prev</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="p-2 rounded-xl border border-slate-200 hover:bg-slate-50 disabled:opacity-40 transition-colors cursor-pointer"
+                className="h-8 text-xs gap-1"
               >
-                <ChevronRight className="w-4 h-4" />
-              </button>
+                <span>Next</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </Button>
             </div>
           </div>
         )}
       </div>
 
-      {/* Delete Confirmation Modal */}
-      <Modal
-        isOpen={Boolean(productToDelete)}
-        onClose={() => setProductToDelete(null)}
-        title="Confirm Product Removal"
+      {/* Delete Confirmation Modal using Dialog */}
+      <Dialog
+        open={Boolean(productToDelete)}
+        onOpenChange={(open) => !open && setProductToDelete(null)}
+        title="Confirm Hardware Deletion"
+        description="Are you sure you want to remove this item from the showroom database? This cannot be undone."
       >
-        <div className="space-y-4">
-          <div className="flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-2xl text-red-700 text-sm font-sans">
-            <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
-            <div>
-              <p className="font-heading font-bold">Are you sure you want to delete this product?</p>
-              <p className="text-xs text-red-600 mt-1">
-                This will remove <strong>&ldquo;{productToDelete?.name}&rdquo;</strong> permanently from the catalog. Customers will no longer be able to inquire about it.
-              </p>
+        {productToDelete && (
+          <div className="space-y-4">
+            <div className="p-3.5 rounded-lg bg-slate-50 border border-slate-200 text-xs">
+              <div className="font-bold text-slate-900 mb-0.5">{productToDelete.name}</div>
+              <div className="text-slate-500 font-mono">Slug: /{productToDelete.slug}</div>
+              <div className="text-slate-600 mt-1">Price: {formatPrice(productToDelete.price)}</div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setProductToDelete(null)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={confirmDelete}
+                disabled={isDeleting}
+                className="gap-1.5 font-bold"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span>{isDeleting ? 'Deleting...' : 'Delete Permanently'}</span>
+              </Button>
             </div>
           </div>
-
-          <div className="flex items-center justify-end gap-3 pt-3">
-            <Button
-              variant="secondary"
-              onClick={() => setProductToDelete(null)}
-              disabled={isDeleting}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="danger"
-              onClick={confirmDelete}
-              isLoading={isDeleting}
-            >
-              Delete Product
-            </Button>
-          </div>
-        </div>
-      </Modal>
+        )}
+      </Dialog>
     </div>
   );
 };

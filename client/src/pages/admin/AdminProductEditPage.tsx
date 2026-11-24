@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { ProductForm, ProductFormValues } from '../../components/admin/ProductForm';
 import { productService } from '../../services/productService';
 import { Product } from '../../types';
-import { Spinner } from '../../components/common/Spinner';
-import { ArrowLeft, ExternalLink } from 'lucide-react';
+import { Skeleton } from '../../components/ui/skeleton';
+import { Button } from '../../components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 import toast from 'react-hot-toast';
 
 export const AdminProductEditPage: React.FC = () => {
@@ -41,7 +41,7 @@ export const AdminProductEditPage: React.FC = () => {
   const handleUpdate = async (values: ProductFormValues) => {
     if (!id) return;
     setIsSubmitting(true);
-    const toastId = toast.loading('Saving changes to product...');
+    const toastId = toast.loading('Saving changes to Supabase...');
 
     try {
       await productService.updateProduct(id, {
@@ -67,8 +67,9 @@ export const AdminProductEditPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-[50vh] flex items-center justify-center">
-        <Spinner size="lg" label="Loading product for editing..." />
+      <div className="space-y-6">
+        <Skeleton className="h-10 w-1/3" />
+        <Skeleton className="h-96 w-full rounded-xl" />
       </div>
     );
   }
@@ -78,44 +79,22 @@ export const AdminProductEditPage: React.FC = () => {
   }
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
-    >
+    <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-4">
-          <Link
-            to="/admin/products"
-            className="p-2.5 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-xl text-slate-600 transition-colors shadow-2xs group"
-            title="Return to inventory"
-          >
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
-          </Link>
-          <div>
-            <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 font-mono mb-1">
-              <span>INVENTORY</span>
-              <span>/</span>
-              <span className="text-[#E11D48]">EDIT</span>
-              <span>/</span>
-              <span className="truncate max-w-[200px]">{product.slug}</span>
-            </div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 font-display tracking-tight">
-              Edit Product
-            </h1>
-          </div>
-        </div>
-
-        <Link
-          to={`/products/${product.slug}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-700 hover:text-[#E11D48] hover:border-[#E11D48]/30 transition-all shadow-2xs font-heading"
-        >
-          <ExternalLink className="w-3.5 h-3.5" />
-          <span>View Public Store Page</span>
+      <div className="flex items-center gap-3">
+        <Link to="/admin/products">
+          <Button variant="outline" size="icon" className="h-9 w-9">
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
         </Link>
+        <div>
+          <div className="text-[11px] font-semibold text-slate-400 font-mono">
+            INVENTORY / EDIT ITEM
+          </div>
+          <h1 className="text-xl font-bold font-heading text-slate-900 tracking-tight">
+            Edit: {product.name}
+          </h1>
+        </div>
       </div>
 
       <ProductForm
@@ -124,6 +103,6 @@ export const AdminProductEditPage: React.FC = () => {
         isLoading={isSubmitting}
         mode="edit"
       />
-    </motion.div>
+    </div>
   );
 };

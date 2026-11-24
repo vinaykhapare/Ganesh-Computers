@@ -1,15 +1,14 @@
 import React from 'react';
-import { motion } from 'framer-motion';
 import { CATEGORIES_LIST } from '../../constants/categories';
-import { 
-  Laptop, 
-  RotateCcw, 
-  Mouse, 
-  Printer, 
-  Camera, 
-  Wrench, 
+import {
+  Laptop,
+  RotateCcw,
+  Mouse,
+  Printer,
+  Camera,
+  Wrench,
   LayoutGrid,
-  Sparkles
+  Sparkles,
 } from 'lucide-react';
 
 interface CategoryFilterProps {
@@ -45,24 +44,24 @@ export const CategoryFilter: React.FC<CategoryFilterProps> = ({
   };
 
   return (
-    <div className={`overflow-x-auto pb-2 scrollbar-none ${className}`}>
-      <div className="flex items-center gap-2 min-w-max p-1 bg-slate-100/80 rounded-2xl border border-slate-200/80">
+    <div className={`overflow-x-auto pb-1 scrollbar-none ${className}`}>
+      <div className="flex items-center gap-1.5 min-w-max p-1 bg-slate-100 rounded-lg border border-slate-200">
         {CATEGORIES_LIST.map((category) => {
-          const isSelected = selectedCategory === category || (!selectedCategory && category === 'All Categories');
+          const isSelected =
+            selectedCategory === category || (!selectedCategory && category === 'All Categories');
           return (
-            <motion.button
-              whileTap={{ scale: 0.97 }}
+            <button
               key={category}
               onClick={() => onSelectCategory(category)}
-              className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-heading font-bold transition-all duration-200 cursor-pointer select-none ${
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-colors cursor-pointer select-none ${
                 isSelected
-                  ? 'bg-[#E11D48] text-white shadow-sm shadow-rose-500/25'
+                  ? 'bg-slate-900 text-white shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-white/80'
               }`}
             >
-              <span>{getCategoryIcon(category)}</span>
+              <span className="opacity-80">{getCategoryIcon(category)}</span>
               <span>{category}</span>
-            </motion.button>
+            </button>
           );
         })}
       </div>

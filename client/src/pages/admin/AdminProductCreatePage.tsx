@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { ProductForm, ProductFormValues } from '../../components/admin/ProductForm';
 import { productService } from '../../services/productService';
-import { ArrowLeft, PlusCircle } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
+import { Button } from '../../components/ui/button';
 import toast from 'react-hot-toast';
 
 export const AdminProductCreatePage: React.FC = () => {
@@ -12,10 +12,10 @@ export const AdminProductCreatePage: React.FC = () => {
 
   const handleCreate = async (values: ProductFormValues) => {
     setIsSubmitting(true);
-    const toastId = toast.loading('Publishing product to catalog...');
+    const toastId = toast.loading('Publishing product to Supabase...');
 
     try {
-      // Check if slug already exists
+      // Check if slug already exists in Supabase
       const existing = await productService.getProductBySlug(values.slug);
       if (existing) {
         toast.error(`A product with slug "${values.slug}" already exists. Please choose a unique slug.`, {
@@ -47,33 +47,25 @@ export const AdminProductCreatePage: React.FC = () => {
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="space-y-6"
-    >
+    <div className="space-y-6">
       {/* Navigation header */}
-      <div className="flex items-center gap-4">
-        <Link
-          to="/admin/products"
-          className="p-2.5 bg-white border border-slate-200 hover:border-slate-300 hover:bg-slate-50 rounded-xl text-slate-600 transition-colors shadow-2xs group"
-          title="Return to inventory"
-        >
-          <ArrowLeft className="w-5 h-5 group-hover:-translate-x-0.5 transition-transform" />
+      <div className="flex items-center gap-3">
+        <Link to="/admin/products">
+          <Button variant="outline" size="icon" className="h-9 w-9">
+            <ArrowLeft className="w-4 h-4" />
+          </Button>
         </Link>
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-slate-400 font-mono mb-1">
-            <span>INVENTORY</span>
-            <span>/</span>
-            <span className="text-[#E11D48]">NEW ITEM</span>
+          <div className="text-[11px] font-semibold text-slate-400 font-mono">
+            INVENTORY / NEW ITEM
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-slate-900 font-display tracking-tight flex items-center gap-2.5">
+          <h1 className="text-xl font-bold font-heading text-slate-900 tracking-tight">
             Add New Hardware Unit
           </h1>
         </div>
       </div>
 
       <ProductForm onSubmit={handleCreate} isLoading={isSubmitting} mode="create" />
-    </motion.div>
+    </div>
   );
 };
